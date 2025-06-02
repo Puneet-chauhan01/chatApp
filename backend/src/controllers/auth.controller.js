@@ -1,7 +1,8 @@
 import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/user.model.js";
-import bcrypt from "bcryptjs"
+import bcrypt from "bcryptjs";
+import multer from "multer";
 
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body
@@ -82,46 +83,30 @@ try{
 }
 }
 
-
-
-// export const updateProfile = async (req,res)=>{
-//     try {
-//         const{profilePic} = req.body;
-//         const userid = req.user._id;
-//         if(!profilePic){
-//             return res.status(400).json({message:"Profilepic is required"});
-
-//         }
-//         const uploadResponse = await cloudinary.uploader.upload(profilePic)
-//         const updatedUser = await User.findByIdAndUpdate(userid,{profilePic:uploadResponse.secure_url},{new:true})
-//         res.status(200).json({updatedUser});
-//     } catch (error) {
-//         console.log("error in update-profile controller",error.message);
-//     res.status(500).json({message:"Internal server error"});
-//     }
-// }
-
 export const updateProfile = async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "Profile picture is required" });
-      }
-      // Convert file buffer to base64 string (Cloudinary accepts data URIs)
-      const fileStr = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
-      const uploadResponse = await cloudinary.uploader.upload(fileStr);
-      const updatedUser = await User.findByIdAndUpdate(
-        req.user._id,
-        { profilePic: uploadResponse.secure_url },
-        { new: true }
-      );
-      res.status(200).json({ updatedUser });
-    } catch (error) {
-      console.log("Error in update-profile controller:", error.message);
-      res.status(500).json({ message: "Internal server error" });
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Profile picture is required" });
     }
-  };
+    // Convert file buffer to base64 string (Cloudinary accepts data URIs)
+    const fileStr = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    const uploadResponse = await cloudinary.uploader.upload(fileStr);
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { profilePic: uploadResponse.secure_url },
+      { new: true }
+    );
+    res.status(200).json({ updatedUser });
+  } catch (error) {
+    console.log("Error in update-profile controller:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
-  
+
+
+
+
 
 export const checkAuth=(req,res)=>{
     try {

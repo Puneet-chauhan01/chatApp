@@ -36,13 +36,16 @@ const ProfilePage = () => {
   //   // Assuming updateProfile accepts FormData:
   //   await updateProfile(formData);
   // };
-
   
+
+
+
+
   return (
     <div className='h-screen pt-20'>
       <div className='max-w-2xl mx-auto p-4 py-8'>
         <div className='bg-base-3300 rounded-xl p-6 space-y-8'>
-          <div className='tex-center'>
+          <div className='text-center'>
             <h1 className='text-2xl font-semibold'>Profile</h1>
             <p className='mt-2'>Your profile information</p>
           </div>
