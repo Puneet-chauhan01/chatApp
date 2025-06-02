@@ -54,6 +54,7 @@ export const sendMessage = async (req, res) => {
     }
 
     const payload = { senderId, text };
+     if (imageUrl) payload.image = imageUrl;
     const targetId = req.params.id;
 
     if (isGroup) {
