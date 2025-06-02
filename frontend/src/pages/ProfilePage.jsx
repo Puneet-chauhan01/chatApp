@@ -26,17 +26,6 @@ const ProfilePage = () => {
   };
 
 
-  // const handleImageUpload = async (e) => {
-  //   const file = e.target.files[0];
-  //   if (!file) return;
-    
-  //   const formData = new FormData();
-  //   formData.append('profilePic', file);
-    
-  //   // Assuming updateProfile accepts FormData:
-  //   await updateProfile(formData);
-  // };
-  
 
 
 

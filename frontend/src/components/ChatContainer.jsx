@@ -89,6 +89,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import ChatHeader from "./ChatHeader";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import MessageInput from "./MessageInput";
+import NoChatSelected from "./NochatSelected";
 
 const ChatContainer = () => {
   const { authUser } = useAuthStore();
