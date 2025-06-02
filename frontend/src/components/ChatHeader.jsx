@@ -1,41 +1,3 @@
-// import { X } from "lucide-react";
-// import { useAuthStore } from "../store/useAuthStore";
-// import { useChatStore } from "../store/useChatStore";
-
-// const ChatHeader = () => {
-//   const { selectedUser, setSelectedUser } = useChatStore();
-//   const { onlineUsers } = useAuthStore();
-
-//   return (
-//     <div className="p-2.5 border-b border-base-300">
-//       <div className="flex items-center justify-between">
-//         <div className="flex items-center gap-3">
-//           {/* Avatar */}
-//           <div className="avatar">
-//             <div className="size-10 rounded-full relative">
-//               <img src={selectedUser.profilePic || "/avatar.png"} alt={selectedUser.fullName} />
-//             </div>
-//           </div>
-
-//           {/* User info */}
-//           <div>
-//             <h3 className="font-medium">{selectedUser.fullName}</h3>
-//             <p className="text-sm text-base-content/70">
-//               {onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
-//             </p>
-//           </div>
-//         </div>
-
-//         {/* Close button */}
-//         <button onClick={() => setSelectedUser(null)}>
-//           <X />
-//         </button>
-//       </div>
-//     </div>
-//   );
-// };
-// export default ChatHeader;
-// At the top
 
 // src/components/ChatHeader.jsx
 import React, { useState } from "react";
@@ -44,7 +6,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import AddMembersModal from "./modals/AddMembersModal";
 import GroupProfileModal from "./modals/GroupProfileModal";
-
+import { ArrowLeft } from "lucide-react";
 const ChatHeader = () => {
   const { onlineUsers, authUser } = useAuthStore();
   const { selectedChat, setSelectedChat } = useChatStore();
@@ -67,10 +29,19 @@ if (!selectedChat || !selectedChat.data) return null;
       setIsProfileModalOpen(true);
     }
   };
+  const handleBack = () => {
+    setSelectedChat(null);
+  };
 
   return (
     <div className="p-2.5 border-b border-base-300">
       <div className="flex items-center justify-between">
+        <button
+            onClick={handleBack}
+            className="lg:hidden btn btn-ghost btn-sm btn-circle"
+          >
+            <ArrowLeft size={18} />
+          </button>
         {/* Left side: avatar + name (clicking avatar opens the “GroupProfileModal”) */}
         <div
           className="flex items-center gap-3 cursor-pointer"

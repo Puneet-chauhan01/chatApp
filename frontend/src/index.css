@@ -4,3 +4,53 @@
 @plugin "daisyui" {
   themes: all;}
 
+/* Mobile Responsive Styles */
+@media (max-width: 1024px) {
+  /* Ensure full height on mobile */
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* Chat container adjustments */
+  .chat-container {
+    height: 100vh;
+  }
+
+  /* Message input responsive */
+  .message-input-container {
+    padding: 0.75rem;
+  }
+
+  /* Sidebar improvements */
+  .sidebar-mobile {
+    width: 85vw;
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Very small screens */
+  .sidebar-mobile {
+    width: 90vw;
+  }
+  
+  /* Adjust message bubbles */
+  .message-bubble {
+    max-width: 85%;
+  }
+  
+  /* Smaller avatar sizes */
+  .avatar-sm {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* Touch-friendly buttons */
+@media (hover: none) and (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
