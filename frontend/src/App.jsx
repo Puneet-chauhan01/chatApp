@@ -10,7 +10,9 @@ import { useAuthStore } from './store/useAuthStore';
 import { Loader } from "lucide-react"
 import { Toaster } from 'react-hot-toast';
 import { useThemeStore } from './store/useThemeStore';
-
+import { handleIncomingCall } from './utils/handleIncomingCall';
+import CallModal from './components/CallModal';
+import { useCallStore } from './store/useCallStore';
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
   console.log("onlineUsers= ", onlineUsers);
@@ -22,6 +24,47 @@ const App = () => {
   console.log(theme);
 
   const { socket, groups } = useAuthStore();
+  // Call event listeners
+  // src/App.jsx - UPDATED CALL EVENT HANDLERS
+useEffect(() => {
+  if (!socket) return;
+
+  const handleIncomingCallEvent = (callData) => {
+    console.log("📞 Received incoming call event:", callData);
+    handleIncomingCall(callData);
+  };
+
+  const handleCallAccepted = (data) => {
+    console.log('✅ Call accepted:', data);
+    // Don't end call on acceptance
+  };
+
+  const handleCallRejected = (data) => {
+    console.log('❌ Call rejected:', data);
+    // Handle call rejection
+  };
+
+  const handleCallEnded = (data) => {
+    console.log('📞 Call ended:', data);
+    // Only end call if it matches current call
+    const { endCall } = useCallStore.getState();
+    endCall();
+  };
+
+  socket.on('incomingCall', handleIncomingCallEvent);
+  socket.on('callAccepted', handleCallAccepted);
+  socket.on('callRejected', handleCallRejected);
+  socket.on('callEnded', handleCallEnded);
+
+  return () => {
+    socket.off('incomingCall', handleIncomingCallEvent);
+    socket.off('callAccepted', handleCallAccepted);
+    socket.off('callRejected', handleCallRejected);
+    socket.off('callEnded', handleCallEnded);
+  };
+}, [socket, handleIncomingCall]);
+
+
   // useEffect(() => {
   //   if (!socket || !Array.isArray(groups)) return;
   //   const ids = groups.map((g) => g._id);
@@ -51,6 +94,7 @@ const App = () => {
         </Routes>
 
       </div>
+      <CallModal />
       <Toaster />
     </>
   )

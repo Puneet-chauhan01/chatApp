@@ -1,42 +1,4 @@
-// import { Server } from "socket.io";
-// import http from "http";
-// import express from "express";
-// import exp from "constants";
 
-// const app = express();
-// const server = http.createServer(app);
-
-// const io = new Server(server, {
-//   cors: {
-//     origin: ["http://localhost:5173"],
-//   },
-// });
-
-// export function getRecieverSocketId(userId) {
-//   return userSocketMap[userId];
-// }
-// const userSocketMap = {};//{userId:socketId}
-
-
-// io.on("connection", (socket) => {
-//     console.log("A user connected", socket.id);
-//     const userId = socket.handshake.query.userId;
-//     if(userId) userSocketMap[userId]=socket.id;
-
-//     io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
-//     socket.on("disconnect", () => {
-//         console.log("user disconnected", socket.id);
-//         delete userSocketMap[userId];
-//         io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
-//         console.log("userSocketMap",userSocketMap);
-//     });
-
-//     socket.on("error", (err) => {
-//       console.error(`Socket error on ${socket.id}:`, err);
-//   });
-// });
 // lib/socket.js
 
 import { Server } from "socket.io";
@@ -45,6 +7,8 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import cookie from "cookie"; // Needed to parse the raw cookie header
 import Group from "../models/group.model.js"; // Assuming you have a Group model
+import Call from "../models/call.model.js";
+
 const app = express();
 const server = http.createServer(app);
 
@@ -136,6 +100,174 @@ io.on("connection", (socket) => {
     socket.leave(groupId);
     console.log(`🔴 Socket ${socket.id} left group: ${groupId}`);
   });
+   socket.on("initiateCall", async ({ targetUserId, callType, isGroup, groupId }) => {
+    try {
+      const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Create call record in database
+      let participants = [userId];
+      if (isGroup) {
+        const group = await Group.findById(groupId).populate('members');
+        participants = group.members.map(m => m._id.toString());
+      } else {
+        participants.push(targetUserId);
+      }
+      
+      const callRecord = await Call.create({
+        callId,
+        participants,
+        callType,
+        isGroup,
+        groupId: isGroup ? groupId : undefined,
+        initiatedBy: userId,
+        status: "initiated"
+      });
+      
+      const callData = {
+        callId,
+        callerId: userId,
+        callerName: socket.userName || "Unknown",
+        callType,
+        isGroup,
+        groupId: isGroup ? groupId : null,
+        targetUserId: isGroup ? null : targetUserId
+      };
+
+      if (isGroup) {
+        socket.to(groupId).emit("incomingCall", callData);
+      } else {
+        const targetSocketId = getRecieverSocketId(targetUserId);
+        if (targetSocketId) {
+          io.to(targetSocketId).emit("incomingCall", callData);
+        }
+      }
+    } catch (error) {
+      console.error("Error initiating call:", error);
+    }
+  });
+
+  socket.on("acceptCall", async ({ callId, targetUserId }) => {
+    try {
+      // Update call status to connecting
+      await Call.findOneAndUpdate(
+        { callId },
+        { status: "connecting" }
+      );
+      
+      const targetSocketId = getRecieverSocketId(targetUserId);
+      if (targetSocketId) {
+        io.to(targetSocketId).emit("callAccepted", { callId, acceptedBy: userId });
+      }
+    } catch (error) {
+      console.error("Error accepting call:", error);
+    }
+  });
+
+  socket.on("callStarted", async ({ callId }) => {
+    try {
+      // Update call to active status
+      await Call.findOneAndUpdate(
+        { callId },
+        { 
+          status: "active",
+          startedAt: new Date()
+        }
+      );
+    } catch (error) {
+      console.error("Error updating call to active:", error);
+    }
+  });
+
+  socket.on("rejectCall", async ({ callId, targetUserId }) => {
+    try {
+      // Update call status to rejected
+      await Call.findOneAndUpdate(
+        { callId },
+        { 
+          status: "rejected",
+          endedAt: new Date(),
+          endReason: "rejected"
+        }
+      );
+      
+      const targetSocketId = getRecieverSocketId(targetUserId);
+      if (targetSocketId) {
+        io.to(targetSocketId).emit("callRejected", { callId, rejectedBy: userId });
+      }
+    } catch (error) {
+      console.error("Error rejecting call:", error);
+    }
+  });
+
+  socket.on("endCall", async ({ callId, participants, reason = "completed" }) => {
+    try {
+      // Update call status to ended with duration
+      const call = await Call.findOne({ callId });
+      if (call) {
+        const endedAt = new Date();
+        let duration = 0;
+        
+        if (call.startedAt) {
+          duration = Math.floor((endedAt - call.startedAt) / 1000);
+        }
+        
+        await Call.findOneAndUpdate(
+          { callId },
+          { 
+            status: "ended",
+            endedAt,
+            duration,
+            endReason: reason
+          }
+        );
+      }
+      
+      // Notify other participants
+      participants.forEach(participantId => {
+        const socketId = getRecieverSocketId(participantId);
+        if (socketId && socketId !== socket.id) {
+          io.to(socketId).emit("callEnded", { callId, endedBy: userId });
+        }
+      });
+    } catch (error) {
+      console.error("Error ending call:", error);
+    }
+  });
+
+  // WebRTC signaling
+  socket.on("webrtc-offer", ({ offer, targetUserId, callId }) => {
+    const targetSocketId = getRecieverSocketId(targetUserId);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("webrtc-offer", {
+        offer,
+        callerId: userId,
+        callId
+      });
+    }
+  });
+
+  socket.on("webrtc-answer", ({ answer, targetUserId, callId }) => {
+    const targetSocketId = getRecieverSocketId(targetUserId);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("webrtc-answer", {
+        answer,
+        callerId: userId,
+        callId
+      });
+    }
+  });
+
+  socket.on("webrtc-ice-candidate", ({ candidate, targetUserId, callId }) => {
+    const targetSocketId = getRecieverSocketId(targetUserId);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("webrtc-ice-candidate", {
+        candidate,
+        callerId: userId,
+        callId
+      });
+    }
+  });
+
 
   // ── Disconnection ──
   socket.on("disconnect", () => {
@@ -150,3 +282,7 @@ io.on("connection", (socket) => {
 });
 
 export { io, app, server };
+
+function generateCallId() {
+  return `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}

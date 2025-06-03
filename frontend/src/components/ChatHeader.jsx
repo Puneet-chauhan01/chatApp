@@ -1,19 +1,24 @@
 
 // src/components/ChatHeader.jsx
 import React, { useState } from "react";
-import { X, UserPlus } from "lucide-react";
+import { X, UserPlus, ArrowLeft, Info } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import AddMembersModal from "./modals/AddMembersModal";
 import GroupProfileModal from "./modals/GroupProfileModal";
-import { ArrowLeft } from "lucide-react";
+import CallButton from "./CallButton";
+// import { useCallStore } from "../store/useCallStore"; // Uncomment if you need call functionality
+// import axiosInstance from "../utils/axiosInstance"; // Uncomment if you need axios functionality
+// import { useCallHistoryStore } from "../store/useCallHistoryStore"; // Uncomment if you need call history functionality
+// import { useWebRTC } from "../hooks/useWebRTC"; // Uncomment if you need WebRTC functionality
+
 const ChatHeader = () => {
   const { onlineUsers, authUser } = useAuthStore();
   const { selectedChat, setSelectedChat } = useChatStore();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-if (!selectedChat || !selectedChat.data) return null;
+  if (!selectedChat || !selectedChat.data) return null;
 
   const { type, data } = selectedChat;
   console.log("ChatHeader rendering", selectedChat);
@@ -37,16 +42,15 @@ if (!selectedChat || !selectedChat.data) return null;
     <div className="p-2.5 border-b border-base-300">
       <div className="flex items-center justify-between">
         <button
-            onClick={handleBack}
-            className="lg:hidden btn btn-ghost btn-sm btn-circle"
-          >
-            <ArrowLeft size={18} />
-          </button>
+          onClick={handleBack}
+          className="lg:hidden btn btn-ghost btn-sm btn-circle"
+        >
+          <ArrowLeft size={18} />
+        </button>
         {/* Left side: avatar + name (clicking avatar opens the “GroupProfileModal”) */}
         <div
           className="flex items-center gap-3 cursor-pointer"
-          onClick={handleAvatarClick}
-        >
+          onClick={handleAvatarClick}>
           <div className="avatar">
             <div className="size-10 rounded-full relative">
               {type === "user" ? (
@@ -61,6 +65,9 @@ if (!selectedChat || !selectedChat.data) return null;
             </div>
           </div>
 
+
+          {/* Actions - Add CallButton */}
+          
           <div>
             <h3 className="font-medium">{type === "user" ? data.fullName : data.name}</h3>
             <p className="text-sm text-base-content/70">
@@ -71,10 +78,17 @@ if (!selectedChat || !selectedChat.data) return null;
                 : `${data.members.length} members`}
             </p>
           </div>
+          
         </div>
 
         {/* Right side: show “Add Members” button only if current user is an admin */}
         <div className="flex items-center gap-2">
+          <div className="flex items-center space-x-1">
+            <CallButton />
+            <button className="btn btn-ghost btn-sm btn-circle lg:btn-md">
+              <Info size={16} className="lg:w-5 lg:h-5" />
+            </button>
+          </div>
           {isGroupAdmin && type === "group" && (
             <button
               onClick={() => setIsAddModalOpen(true)}
