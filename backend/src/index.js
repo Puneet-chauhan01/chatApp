@@ -18,7 +18,9 @@ const __dirname = path.resolve();
 socketApp.use(express.json());
 socketApp.use(cookieParser());
 socketApp.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.NODE_ENV === "production" 
+    ? true  // Allow same origin requests in production
+    : "http://localhost:5173",
   credentials: true,
 }));
 
