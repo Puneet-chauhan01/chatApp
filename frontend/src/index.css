@@ -1,9 +1,11 @@
-
+/* 
 @import "tailwindcss";
 @plugin "daisyui" ;
 @plugin "daisyui" {
-  themes: all;}
-
+  themes: all;} */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 /* Mobile Responsive Styles */
 @media (max-width: 1024px) {
   /* Ensure full height on mobile */
