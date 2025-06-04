@@ -26,52 +26,31 @@ const App = () => {
   const { socket, groups } = useAuthStore();
   // Call event listeners
   // src/App.jsx - UPDATED CALL EVENT HANDLERS
-  useEffect(() => {
-    if (!socket) return;
-    const { endCall, setCurrentCall } = useCallStore.getState();
+  // src/App.jsx
+useEffect(() => {
+  if (!socket) return
 
-    const handleIncomingCallEvent = (callData) => {
-      console.log("📞 Received incoming call event:", callData);
-      handleIncomingCall(callData);
-    };
+  // Handlers defined once
+  const onIncoming = (data) => handleIncomingCall(data)
+  const onAccepted = (data) => console.log("✅ Call accepted:", data)
+  const onRejected = (data) => console.log("❌ Call rejected:", data)
+  const onEnded    = (data) => useCallStore.getState().endCall()
+  const onStarted  = ({ callId }) => console.log("🟢 Call started:", callId)
 
-    const handleCallAccepted = (data) => {
-      console.log('✅ Call accepted:', data);
-      // Don't end call on acceptance
-    };
+  socket.on("incomingCall",  onIncoming)
+  socket.on("callAccepted",  onAccepted)
+  socket.on("callRejected",  onRejected)
+  socket.on("callStarted",   onStarted)
+  socket.on("callEnded",     onEnded)
 
-    const handleCallRejected = (data) => {
-      console.log('❌ Call rejected:', data);
-      // Handle call rejection
-    };
-
-    const handleCallEnded = (data) => {
-      console.log('📞 Call ended:', data);
-      // Only end call if it matches current call
-      const { endCall } = useCallStore.getState();
-      endCall();
-    };
-
-    const onCallStarted = ({ callId }) => {
-      console.log('🟢 Call started:', callId);
-      // You could e.g. set a flag in your store if you want to show "Active"
-    };
-    socket.on('callStarted', onCallStarted);
-
-    socket.on('incomingCall', handleIncomingCallEvent);
-    socket.on('callAccepted', handleCallAccepted);
-    socket.on('callRejected', handleCallRejected);
-    socket.on('callEnded', handleCallEnded);
-
-    return () => {
-      socket.off('incomingCall', handleIncomingCallEvent);
-      socket.off('callAccepted', handleCallAccepted);
-      socket.off('callRejected', handleCallRejected);
-      socket.off('callEnded', handleCallEnded);
-      socket.off('callStarted', onCallStarted);
-
-    };
-  }, [socket, handleIncomingCall]);
+  return () => {
+    socket.off("incomingCall", onIncoming)
+    socket.off("callAccepted", onAccepted)
+    socket.off("callRejected", onRejected)
+    socket.off("callStarted",  onStarted)
+    socket.off("callEnded",    onEnded)
+  }
+}, [socket])  // ← only re-run when `socket` identity changes
 
 
   // useEffect(() => {

@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import cookie from "cookie"; // Needed to parse the raw cookie header
 import Group from "../models/group.model.js"; // Assuming you have a Group model
 import Call from "../models/call.model.js";
-
+import User from "../models/user.model.js"; // Assuming you have a User model
 const app = express();
 const server = http.createServer(app);
 
@@ -30,7 +30,7 @@ export function getRecieverSocketId(userId) {
 
 // ── JWT Authentication Middleware for Socket.IO ──
 // This will run on each incoming socket connection.
-io.use((socket, next) => {
+io.use(async(socket, next) => {
   // 1) Grab the raw Cookie header from the handshake
   const rawCookie = socket.handshake.headers.cookie;
   if (!rawCookie) {
@@ -48,6 +48,8 @@ io.use((socket, next) => {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     socket.userId = payload.userId;
+    const user = await User.findById(userId).select("fullName")
+    socket.userName = user?.fullName || "Unknown"
     next();
   } catch (err) {
     return next(new Error("Authentication error: invalid token"));
@@ -175,7 +177,7 @@ io.on("connection", (socket) => {
           startedAt: new Date()
         }
       );
-          if (!Call) return console.warn("callStarted: no call record", callId);
+      if (!Call) return console.warn("callStarted: no call record", callId);
 
       const participants = callRecord.participants.map(String);
 
