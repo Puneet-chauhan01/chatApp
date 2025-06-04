@@ -14,7 +14,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.NODE_ENV === "production" 
+    origin: process.env.NODE_ENV === "production"
       ? true  // Allow same origin requests in production
       : ["http://localhost:5173"],
     credentials: true,
@@ -102,10 +102,10 @@ io.on("connection", (socket) => {
     socket.leave(groupId);
     console.log(`🔴 Socket ${socket.id} left group: ${groupId}`);
   });
-   socket.on("initiateCall", async ({ targetUserId, callType, isGroup, groupId }) => {
+  socket.on("initiateCall", async ({ targetUserId, callType, isGroup, groupId }) => {
     try {
       const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // Create call record in database
       let participants = [userId];
       if (isGroup) {
@@ -114,7 +114,7 @@ io.on("connection", (socket) => {
       } else {
         participants.push(targetUserId);
       }
-      
+
       const callRecord = await Call.create({
         callId,
         participants,
@@ -124,7 +124,7 @@ io.on("connection", (socket) => {
         initiatedBy: userId,
         status: "initiated"
       });
-      
+
       const callData = {
         callId,
         callerId: userId,
@@ -155,7 +155,7 @@ io.on("connection", (socket) => {
         { callId },
         { status: "connecting" }
       );
-      
+
       const targetSocketId = getRecieverSocketId(targetUserId);
       if (targetSocketId) {
         io.to(targetSocketId).emit("callAccepted", { callId, acceptedBy: userId });
@@ -170,11 +170,21 @@ io.on("connection", (socket) => {
       // Update call to active status
       await Call.findOneAndUpdate(
         { callId },
-        { 
+        {
           status: "active",
           startedAt: new Date()
         }
       );
+          if (!Call) return console.warn("callStarted: no call record", callId);
+
+      const participants = callRecord.participants.map(String);
+
+      Call.participants.forEach(pid => {
+        const sid = getRecieverSocketId(pid);
+        if (sid) {
+          io.to(sid).emit("callStarted", { callId });
+        }
+      });
     } catch (error) {
       console.error("Error updating call to active:", error);
     }
@@ -185,13 +195,13 @@ io.on("connection", (socket) => {
       // Update call status to rejected
       await Call.findOneAndUpdate(
         { callId },
-        { 
+        {
           status: "rejected",
           endedAt: new Date(),
           endReason: "rejected"
         }
       );
-      
+
       const targetSocketId = getRecieverSocketId(targetUserId);
       if (targetSocketId) {
         io.to(targetSocketId).emit("callRejected", { callId, rejectedBy: userId });
@@ -208,14 +218,14 @@ io.on("connection", (socket) => {
       if (call) {
         const endedAt = new Date();
         let duration = 0;
-        
+
         if (call.startedAt) {
           duration = Math.floor((endedAt - call.startedAt) / 1000);
         }
-        
+
         await Call.findOneAndUpdate(
           { callId },
-          { 
+          {
             status: "ended",
             endedAt,
             duration,
@@ -223,7 +233,7 @@ io.on("connection", (socket) => {
           }
         );
       }
-      
+
       // Notify other participants
       participants.forEach(participantId => {
         const socketId = getRecieverSocketId(participantId);

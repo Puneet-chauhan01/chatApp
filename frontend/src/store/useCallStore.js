@@ -8,23 +8,23 @@ export const useCallStore = create((set, get) => ({
   incomingCall: null,
   currentCall: null,
   isCallModalOpen: false,
-  
+
   // Actions
   setIncomingCall: (callData) => set({ incomingCall: callData }),
   setCurrentCall: (callData) => set({ currentCall: callData }),
   setCallModalOpen: (isOpen) => set({ isCallModalOpen: isOpen }),
-  
+
   // Handle incoming call - FIXED VERSION
   handleIncomingCall: (callData) => {
     console.log("📞 Incoming call:", callData);
-    
+
     // Set incoming call data and open modal
-    set({ 
-      incomingCall: callData, 
+    set({
+      incomingCall: callData,
       isCallModalOpen: true,
-      currentCall: callData // Also set as current call
+      // currentCall: callData // Also set as current call
     });
-    
+
     // Show a simple toast notification (not for interaction)
     toast.success(
       `📞 ${callData.isGroup ? 'Group Call' : `${callData.callerName} is calling`}`,
@@ -44,10 +44,10 @@ export const useCallStore = create((set, get) => ({
         targetUserId: callData.callerId
       });
     }
-    set({ 
-      currentCall: callData, 
-      incomingCall: null, 
-      isCallModalOpen: true 
+    set({
+      incomingCall: null,
+      currentCall: callData,
+      isCallModalOpen: true
     });
   },
 
@@ -60,30 +60,31 @@ export const useCallStore = create((set, get) => ({
         targetUserId: callData.callerId
       });
     }
-    set({ 
-      incomingCall: null, 
+    set({
+      incomingCall: null,
+      currentCall: null,
       isCallModalOpen: false,
-      currentCall: null 
+
     });
   },
 
   endCall: () => {
     const { currentCall } = get();
     const { socket } = useAuthStore.getState();
-    
+
     if (currentCall && socket) {
       socket.emit('endCall', {
         callId: currentCall.callId,
-        participants: currentCall.isGroup 
-          ? currentCall.participants 
+        participants: currentCall.isGroup
+          ? currentCall.participants
           : [currentCall.targetUserId || currentCall.callerId]
       });
     }
-    
-    set({ 
-      currentCall: null, 
-      incomingCall: null, 
-      isCallModalOpen: false 
+
+    set({
+      currentCall: null,
+      incomingCall: null,
+      isCallModalOpen: false
     });
   }
 }));

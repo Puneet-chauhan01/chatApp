@@ -1,229 +1,4 @@
-// // src/components/CallModal.jsx - UPDATED VERSION
-// import React, { useEffect } from 'react';
-// import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react';
-// import { useCallStore } from '../store/useCallStore';
-// import { useWebRTC } from '../hooks/useWebRTC';
 
-// const CallModal = () => {
-//   const { 
-//     currentCall, 
-//     incomingCall,
-//     isCallModalOpen, 
-//     setCallModalOpen, 
-//     acceptCall,
-//     rejectCall,
-//     endCall 
-//   } = useCallStore();
-
-//   const {
-//     localStream,
-//     remoteStream,
-//     isCallActive,
-//     localVideoRef,
-//     remoteVideoRef,
-//     startCall,
-//     answerCall,
-//     endCall: endWebRTCCall,
-//     toggleVideo,
-//     toggleAudio
-//   } = useWebRTC();
-
-//   if (!isCallModalOpen || !incomingCall || currentCall) return null;
-
-//   const onAccept = () => {
-//     acceptCall(incomingCall);
-//   };
-
-//   const onReject = () => {
-//     rejectCall(incomingCall);
-//     setCallModalOpen(false);
-//   };
-
-//   useEffect(() => {
-//     if (currentCall && isCallModalOpen && !isCallActive) {
-//       if (currentCall.callerId) {
-//         answerCall(currentCall);
-//       } else {
-//         startCall(
-//           currentCall.targetUserId,
-//           currentCall.callType,
-//           currentCall.isGroup,
-//           currentCall.groupId
-//         );
-//       }
-//     }
-//   }, [currentCall, isCallModalOpen, isCallActive]);
-
-//   const handleAcceptCall = () => {
-//     if (incomingCall) {
-//       acceptCall(incomingCall);
-//     }
-//   };
-
-//   const handleRejectCall = () => {
-//     if (incomingCall) {
-//       rejectCall(incomingCall);
-//     }
-//   };
-
-//   const handleEndCall = () => {
-//     endWebRTCCall();
-//     endCall();
-//     setCallModalOpen(false);
-//   };
-
-//   if (!isCallModalOpen) return null;
-
-//   // Incoming call UI
-//   if (incomingCall && !currentCall) {
-//     return (
-//       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-//         <div className="bg-base-100 rounded-lg p-8 w-full max-w-md mx-4">
-//           <div className="text-center mb-6">
-//             <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-//               {incomingCall.callType === 'video' ? (
-//                 <Video size={32} className="text-primary-content" />
-//               ) : (
-//                 <Phone size={32} className="text-primary-content" />
-//               )}
-//             </div>
-//             <h2 className="text-xl font-bold mb-2">
-//               {incomingCall.isGroup ? 'Group Call' : 'Incoming Call'}
-//             </h2>
-//             <p className="text-base-content/70">
-//               {incomingCall.isGroup 
-//                 ? `Group ${incomingCall.callType} call` 
-//                 : `${incomingCall.callerName} is calling`
-//               }
-//             </p>
-//             <p className="text-sm text-base-content/50 mt-1">
-//               {incomingCall.callType === 'video' ? 'Video Call' : 'Voice Call'}
-//             </p>
-//           </div>
-
-//           <div className="flex justify-center space-x-6">
-//             <button
-//               onClick={handleRejectCall}
-//               className="btn btn-circle btn-lg btn-error"
-//             >
-//               <PhoneOff size={24} />
-//             </button>
-//             <button
-//               onClick={handleAcceptCall}
-//               className="btn btn-circle btn-lg btn-success"
-//             >
-//               <Phone size={24} />
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   // Active call UI
-//   if (currentCall) {
-//     return (
-//       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-//         <div className="bg-base-100 rounded-lg p-6 w-full max-w-4xl h-3/4 flex flex-col">
-//           <div className="flex justify-between items-center mb-4">
-//             <h2 className="text-xl font-bold">
-//               {currentCall.isGroup ? 'Group Call' : 'Call'}
-//             </h2>
-//             <div className="text-sm text-base-content/60">
-//               {isCallActive ? 'Connected' : 'Connecting...'}
-//             </div>
-//           </div>
-
-//           <div className="flex-1 relative bg-gray-900 rounded-lg overflow-hidden">
-//             {currentCall.callType === 'video' && (
-//               <>
-//                 {/* Remote Video */}
-//                 <video
-//                   ref={remoteVideoRef}
-//                   autoPlay
-//                   playsInline
-//                   className="w-full h-full object-cover"
-//                 />
-                
-//                 {/* Local Video (Picture-in-Picture) */}
-//                 <div className="absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden">
-//                   <video
-//                     ref={localVideoRef}
-//                     autoPlay
-//                     playsInline
-//                     muted
-//                     className="w-full h-full object-cover"
-//                   />
-//                 </div>
-//               </>
-//             )}
-
-//             {/* Audio Call Interface */}
-//             {currentCall.callType === 'audio' && (
-//               <>
-//                 {/* Hidden audio elements for audio-only calls */}
-//                 <audio
-//                   ref={remoteVideoRef}
-//                   autoPlay
-//                   playsInline
-//                   className="hidden"
-//                 />
-//                 <audio
-//                   ref={localVideoRef}
-//                   autoPlay
-//                   playsInline
-//                   muted
-//                   className="hidden"
-//                 />
-                
-//                 <div className="flex items-center justify-center h-full">
-//                   <div className="text-center">
-//                     <div className="w-32 h-32 bg-primary rounded-full flex items-center justify-center mb-4 mx-auto">
-//                       <Phone size={48} className="text-primary-content" />
-//                     </div>
-//                     <h3 className="text-xl text-white">
-//                       {currentCall.isGroup ? 'Group Call' : 'Voice Call'}
-//                     </h3>
-//                     <p className="text-gray-300">
-//                       {isCallActive ? 'Connected' : 'Connecting...'}
-//                     </p>
-//                   </div>
-//                 </div>
-//               </>
-//             )}
-//           </div>
-
-//           <div className="flex justify-center space-x-4 mt-6">
-//             <button
-//               onClick={toggleAudio}
-//               className="btn btn-circle btn-lg bg-gray-600 hover:bg-gray-500"
-//             >
-//               <Mic size={24} />
-//             </button>
-
-//             {currentCall.callType === 'video' && (
-//               <button
-//                 onClick={toggleVideo}
-//                 className="btn btn-circle btn-lg bg-gray-600 hover:bg-gray-500"
-//               >
-//                 <Video size={24} />
-//               </button>
-//             )}
-
-//             <button
-//               onClick={handleEndCall}
-//               className="btn btn-circle btn-lg btn-error"
-//             >
-//               <PhoneOff size={24} />
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return null;
-// };
 
 // export default CallModal;
 import React, { useEffect } from 'react'
@@ -239,7 +14,7 @@ const CallModal = () => {
     setCallModalOpen,
     acceptCall,
     rejectCall,
-    endCall: storeEndCall
+    endCall: storeEndCall,
   } = useCallStore()
 
   const {
@@ -253,10 +28,10 @@ const CallModal = () => {
     answerCall,
     endCall: rtcEndCall,
     toggleAudio,
-    toggleVideo
+    toggleVideo,
   } = useWebRTC()
 
-  // Kick off WebRTC flow once user accepts or initiates
+  // Kick off WebRTC once user accepts or for outgoing
   useEffect(() => {
     if (!isCallModalOpen || !currentCall || isCallActive) return
     if (currentCall.callerId) {
@@ -285,15 +60,15 @@ const CallModal = () => {
 
   if (!isCallModalOpen) return null
 
-  // 1) Incoming call screen
+  // 1) Incoming call: show only Accept/Reject
   if (incomingCall && !currentCall) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
         <div className="bg-white p-6 rounded-lg text-center w-80">
           <h2 className="text-2xl font-bold mb-2">
             {incomingCall.isGroup ? 'Group Call' : 'Incoming Call'}
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="mb-4 text-gray-600">
             {incomingCall.isGroup
               ? `Group ${incomingCall.callType} call`
               : `${incomingCall.callerName} is calling`}
@@ -302,14 +77,12 @@ const CallModal = () => {
             <button
               onClick={onReject}
               className="btn btn-error btn-circle btn-lg"
-              title="Reject"
             >
               <PhoneOff size={24} />
             </button>
             <button
               onClick={onAccept}
               className="btn btn-success btn-circle btn-lg"
-              title="Accept"
             >
               <Phone size={24} />
             </button>
@@ -319,22 +92,18 @@ const CallModal = () => {
     )
   }
 
-  // 2) Connecting screen
+  // 2) Connecting: show spinner + Hang Up
   if (currentCall && !isCallActive) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
         <div className="bg-white p-6 rounded-lg text-center w-80">
           <h2 className="text-xl font-bold mb-2">
-            {currentCall.callerId ? 'Answering Call' : 'Calling...'}
+            {currentCall.callerId ? 'Answering Call' : 'Calling…'}
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="mb-4 text-gray-600">
             {callType === 'video' ? 'Video Call' : 'Voice Call'} – Connecting...
           </p>
-          <button
-            onClick={onHangUp}
-            className="btn btn-error btn-lg"
-            title="Hang Up"
-          >
+          <button onClick={onHangUp} className="btn btn-error btn-lg">
             Hang Up
           </button>
         </div>
@@ -342,12 +111,12 @@ const CallModal = () => {
     )
   }
 
-  // 3) Active call screen
+  // 3) Active call: show media + controls
   if (isCallActive) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg w-full max-w-3xl flex flex-col h-4/5">
-          <div className="flex justify-between items-center mb-4">
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+        <div className="bg-white p-6 rounded-lg w-full max-w-3xl h-4/5 flex flex-col">
+          <header className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">
               {currentCall.isGroup ? 'Group Call' : 'Call'}{' '}
               <span className="text-sm text-gray-500">
@@ -357,11 +126,10 @@ const CallModal = () => {
             <button
               onClick={onHangUp}
               className="btn btn-error btn-sm"
-              title="End Call"
             >
               End Call
             </button>
-          </div>
+          </header>
 
           <div className="flex-1 bg-gray-900 rounded-lg overflow-hidden relative">
             {callType === 'video' ? (
@@ -384,20 +152,17 @@ const CallModal = () => {
               </>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <div className="w-24 h-24 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Phone size={32} />
-                  </div>
+                <div className="text-center text-white">
+                  <Phone size={64} />
                 </div>
               </div>
             )}
           </div>
 
-          <div className="mt-4 flex justify-center space-x-4">
+          <footer className="mt-4 flex justify-center space-x-4">
             <button
               onClick={toggleAudio}
               className="btn btn-circle btn-lg bg-gray-200 hover:bg-gray-300"
-              title="Toggle Mute"
             >
               {localStream?.getAudioTracks()[0]?.enabled ? (
                 <Mic size={24} />
@@ -409,7 +174,6 @@ const CallModal = () => {
               <button
                 onClick={toggleVideo}
                 className="btn btn-circle btn-lg bg-gray-200 hover:bg-gray-300"
-                title="Toggle Video"
               >
                 {localStream?.getVideoTracks()[0]?.enabled ? (
                   <Video size={24} />
@@ -418,7 +182,7 @@ const CallModal = () => {
                 )}
               </button>
             )}
-          </div>
+          </footer>
         </div>
       </div>
     )
