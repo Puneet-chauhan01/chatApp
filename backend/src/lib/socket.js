@@ -9,6 +9,9 @@ import cookie from "cookie"; // Needed to parse the raw cookie header
 import Group from "../models/group.model.js"; // Assuming you have a Group model
 import Call from "../models/call.model.js";
 import User from "../models/user.model.js"; // Assuming you have a User model
+import dotenv from "dotenv";
+dotenv.config(); // Load environment variables from .env file
+
 const app = express();
 const server = http.createServer(app);
 
