@@ -226,8 +226,6 @@
 // };
 
 // export default CallModal;
-
-// src/components/CallModal.jsx
 import React, { useEffect } from 'react'
 import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react'
 import { useCallStore } from '../store/useCallStore'
@@ -258,35 +256,28 @@ const CallModal = () => {
     toggleVideo
   } = useWebRTC()
 
-  // Kick off WebRTC when call is accepted or initiated
+  // Kick off WebRTC flow once user accepts or initiates
   useEffect(() => {
     if (!isCallModalOpen || !currentCall || isCallActive) return
-
     if (currentCall.callerId) {
-      // we answered an incoming call
       answerCall(currentCall)
     } else {
-      // we initiated an outgoing call
-      startCall(
-        currentCall.targetUserId,
-        currentCall.callType,
-        currentCall.isGroup,
-        currentCall.groupId
-      )
+      startCall(currentCall)
     }
   }, [currentCall, isCallModalOpen, isCallActive, answerCall, startCall])
 
-  // UI event handlers
-  const handleAccept = () => {
+  const onAccept = () => {
     if (!incomingCall) return
     acceptCall(incomingCall)
   }
-  const handleReject = () => {
+
+  const onReject = () => {
     if (!incomingCall) return
     rejectCall(incomingCall)
     setCallModalOpen(false)
   }
-  const handleHangUp = () => {
+
+  const onHangUp = () => {
     rtcEndCall()
     storeEndCall()
     setCallModalOpen(false)
@@ -294,29 +285,29 @@ const CallModal = () => {
 
   if (!isCallModalOpen) return null
 
-  // 1) Incoming state
+  // 1) Incoming call screen
   if (incomingCall && !currentCall) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-sm text-center">
+        <div className="bg-white p-6 rounded-lg text-center w-80">
           <h2 className="text-2xl font-bold mb-2">
             {incomingCall.isGroup ? 'Group Call' : 'Incoming Call'}
           </h2>
-          <p className="mb-4 text-gray-600">
+          <p className="text-gray-600 mb-4">
             {incomingCall.isGroup
               ? `Group ${incomingCall.callType} call`
               : `${incomingCall.callerName} is calling`}
           </p>
           <div className="flex justify-center space-x-6">
             <button
-              onClick={handleReject}
+              onClick={onReject}
               className="btn btn-error btn-circle btn-lg"
               title="Reject"
             >
               <PhoneOff size={24} />
             </button>
             <button
-              onClick={handleAccept}
+              onClick={onAccept}
               className="btn btn-success btn-circle btn-lg"
               title="Accept"
             >
@@ -328,19 +319,19 @@ const CallModal = () => {
     )
   }
 
-  // 2) Connecting state (outgoing or just accepted)
+  // 2) Connecting screen
   if (currentCall && !isCallActive) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md text-center">
+        <div className="bg-white p-6 rounded-lg text-center w-80">
           <h2 className="text-xl font-bold mb-2">
-            {currentCall.callerId ? 'Answering Call' : 'Calling'}
+            {currentCall.callerId ? 'Answering Call' : 'Calling...'}
           </h2>
-          <p className="mb-4 text-gray-600">
-            {currentCall.callType === 'video' ? 'Video Call' : 'Voice Call'} – Connecting...
+          <p className="text-gray-600 mb-4">
+            {callType === 'video' ? 'Video Call' : 'Voice Call'} – Connecting...
           </p>
           <button
-            onClick={handleHangUp}
+            onClick={onHangUp}
             className="btn btn-error btn-lg"
             title="Hang Up"
           >
@@ -351,12 +342,12 @@ const CallModal = () => {
     )
   }
 
-  // 3) Active state
+  // 3) Active call screen
   if (isCallActive) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-3xl h-4/5 flex flex-col">
-          <header className="flex justify-between items-center mb-4">
+        <div className="bg-white p-6 rounded-lg w-full max-w-3xl flex flex-col h-4/5">
+          <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">
               {currentCall.isGroup ? 'Group Call' : 'Call'}{' '}
               <span className="text-sm text-gray-500">
@@ -364,13 +355,13 @@ const CallModal = () => {
               </span>
             </h2>
             <button
-              onClick={handleHangUp}
+              onClick={onHangUp}
               className="btn btn-error btn-sm"
-              title="Hang Up"
+              title="End Call"
             >
               End Call
             </button>
-          </header>
+          </div>
 
           <div className="flex-1 bg-gray-900 rounded-lg overflow-hidden relative">
             {callType === 'video' ? (
@@ -397,13 +388,12 @@ const CallModal = () => {
                   <div className="w-24 h-24 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-4">
                     <Phone size={32} />
                   </div>
-                  <p className="text-white">{currentCall.callerName}</p>
                 </div>
               </div>
             )}
           </div>
 
-          <footer className="mt-4 flex justify-center space-x-4">
+          <div className="mt-4 flex justify-center space-x-4">
             <button
               onClick={toggleAudio}
               className="btn btn-circle btn-lg bg-gray-200 hover:bg-gray-300"
@@ -421,14 +411,14 @@ const CallModal = () => {
                 className="btn btn-circle btn-lg bg-gray-200 hover:bg-gray-300"
                 title="Toggle Video"
               >
-                {localStream?.getVideoTracks()?.[0]?.enabled ? (
+                {localStream?.getVideoTracks()[0]?.enabled ? (
                   <Video size={24} />
                 ) : (
                   <VideoOff size={24} />
                 )}
               </button>
             )}
-          </footer>
+          </div>
         </div>
       </div>
     )

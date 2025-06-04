@@ -1,16 +1,16 @@
-// src/hooks/useWebRTC.js
-import { useEffect, useRef, useState, useCallback } from 'react'
-import { useAuthStore }            from '../store/useAuthStore'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { useAuthStore } from '../store/useAuthStore'
 
 export const useWebRTC = () => {
   const [localStream, setLocalStream]   = useState(null)
   const [remoteStream, setRemoteStream] = useState(null)
   const [isCallActive, setIsCallActive] = useState(false)
+  const [callType, setCallType]         = useState(null)
 
-  const pc           = useRef(null)
-  const pendingIce   = useRef([])
-  const callInfo     = useRef(null)
-  const { socket }   = useAuthStore()
+  const pc        = useRef(null)
+  const iceQueue  = useRef([])
+  const callInfo  = useRef(null)
+  const { socket }= useAuthStore()
 
   const iceConfig = {
     iceServers: [
@@ -23,24 +23,24 @@ export const useWebRTC = () => {
     ]
   }
 
-  // Create or reset the peer connection
+  // Initialize or reset RTCPeerConnection
   const initPeer = useCallback(() => {
-    // Clean up old PC if exists
     if (pc.current) {
+      // Clean up old connection
       pc.current.onicecandidate         = null
       pc.current.ontrack                = null
-      pc.current.onconnectionstatechange = null
-      pc.current.onsignalingstatechange  = null
-      pc.current.onnegotiationneeded     = null
+      pc.current.onconnectionstatechange= null
+      pc.current.onsignalingstatechange = null
+      pc.current.onnegotiationneeded    = null
       pc.current.close()
     }
 
-    // New connection
+    // Create new PC
     pc.current = new RTCPeerConnection(iceConfig)
-    pendingIce.current = []
+    iceQueue.current = []
 
     pc.current.onicecandidate = ({ candidate }) => {
-      if (candidate && socket && callInfo.current) {
+      if (candidate && callInfo.current) {
         socket.emit('webrtc-ice-candidate', {
           callId:    callInfo.current.callId,
           candidate,
@@ -54,12 +54,12 @@ export const useWebRTC = () => {
     }
 
     pc.current.onsignalingstatechange = () => {
-      // Drain any queued ICE once remote description is set
+      // Drain queued ICE candidates
       if (pc.current.signalingState === 'stable') {
-        pendingIce.current.forEach(cand =>
-          pc.current.addIceCandidate(new RTCIceCandidate(cand))
+        iceQueue.current.forEach(c =>
+          pc.current.addIceCandidate(new RTCIceCandidate(c))
         )
-        pendingIce.current = []
+        iceQueue.current = []
       }
     }
 
@@ -69,7 +69,7 @@ export const useWebRTC = () => {
       }
     }
 
-    // Perfect negotiation
+    // Perfect Negotiation Pattern
     pc.current.onnegotiationneeded = async () => {
       if (pc.current.signalingState !== 'stable') return
       try {
@@ -86,15 +86,15 @@ export const useWebRTC = () => {
     }
   }, [socket])
 
-  // Get local media and add tracks
-  const openStream = async (useVideo) => {
+  // Open local media and add tracks
+  const openLocalStream = async (useVideo) => {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: useVideo,
-      audio: true
+      audio: true,
+      video: useVideo
     })
     setLocalStream(stream)
     stream.getTracks().forEach(track => {
-      if (pc.current.signalingState !== 'closed') {
+      if (pc.current && pc.current.signalingState !== 'closed') {
         pc.current.addTrack(track, stream)
       }
     })
@@ -102,23 +102,25 @@ export const useWebRTC = () => {
   }
 
   // Start an outgoing call
-  const startCall = async ({ callId, peerId, callType }) => {
+  const startCall = async ({ callId, peerId, type }) => {
     callInfo.current = { callId, peerId }
+    setCallType(type)
     initPeer()
-    await openStream(callType === 'video')
-    // negotiationneeded will fire automatically
+    await openLocalStream(type === 'video')
+    // onnegotiationneeded will fire automatically
   }
 
   // Answer an incoming call
-  const answerCall = async ({ callId, peerId, callType }) => {
-    callInfo.current = { callId, peerId }
+  const answerCall = async ({ callId, callerId, callType }) => {
+    callInfo.current = { callId, peerId: callerId }
+    setCallType(callType)
     initPeer()
-    await openStream(callType === 'video')
-    socket.emit('acceptCall', { callId, targetUserId: peerId })
-    // wait for onnegotiationneeded or onOffer below
+    await openLocalStream(callType === 'video')
+    socket.emit('acceptCall', { callId, targetUserId: callerId })
+    // then wait for onoffer→answer
   }
 
-  // End the call and cleanup
+  // End the call and clean up
   const endCall = () => {
     localStream?.getTracks().forEach(t => t.stop())
     setLocalStream(null)
@@ -129,15 +131,15 @@ export const useWebRTC = () => {
     if (pc.current) {
       pc.current.onicecandidate         = null
       pc.current.ontrack                = null
-      pc.current.onconnectionstatechange = null
-      pc.current.onsignalingstatechange  = null
-      pc.current.onnegotiationneeded     = null
+      pc.current.onconnectionstatechange= null
+      pc.current.onsignalingstatechange = null
+      pc.current.onnegotiationneeded    = null
       pc.current.close()
       pc.current = null
     }
   }
 
-  // Signaling handlers
+  // Socket signaling handlers
   useEffect(() => {
     if (!socket) return
 
@@ -147,7 +149,11 @@ export const useWebRTC = () => {
       await pc.current.setRemoteDescription(new RTCSessionDescription(offer))
       const answer = await pc.current.createAnswer()
       await pc.current.setLocalDescription(answer)
-      socket.emit('webrtc-answer', { callId, answer, targetUserId: callerId })
+      socket.emit('webrtc-answer', {
+        callId,
+        answer,
+        targetUserId: callerId
+      })
     }
 
     const onAnswer = async ({ callId, answer }) => {
@@ -157,11 +163,10 @@ export const useWebRTC = () => {
 
     const onIce = ({ callId, candidate }) => {
       if (callInfo.current?.callId !== callId) return
-      // queue if remoteDesc not set
       if (pc.current.remoteDescription) {
         pc.current.addIceCandidate(new RTCIceCandidate(candidate))
       } else {
-        pendingIce.current.push(candidate)
+        iceQueue.current.push(candidate)
       }
     }
 
@@ -180,10 +185,10 @@ export const useWebRTC = () => {
     localStream,
     remoteStream,
     isCallActive,
+    callType,
     startCall,
     answerCall,
     endCall,
-    // for attaching to video elements:
     localVideoRef:  el => el && (el.srcObject = localStream),
     remoteVideoRef: el => el && (el.srcObject = remoteStream),
     toggleAudio:   () => {
