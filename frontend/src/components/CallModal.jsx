@@ -227,7 +227,6 @@
 
 // export default CallModal;
 
-
 // src/components/CallModal.jsx
 import React, { useEffect } from 'react'
 import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react'
@@ -259,15 +258,15 @@ const CallModal = () => {
     toggleVideo
   } = useWebRTC()
 
-  // When a call is accepted or initiated, start or answer the WebRTC flow
+  // Kick off WebRTC when call is accepted or initiated
   useEffect(() => {
     if (!isCallModalOpen || !currentCall || isCallActive) return
 
     if (currentCall.callerId) {
-      // Incoming call was accepted
+      // we answered an incoming call
       answerCall(currentCall)
     } else {
-      // Outgoing call
+      // we initiated an outgoing call
       startCall(
         currentCall.targetUserId,
         currentCall.callType,
@@ -277,17 +276,16 @@ const CallModal = () => {
     }
   }, [currentCall, isCallModalOpen, isCallActive, answerCall, startCall])
 
+  // UI event handlers
   const handleAccept = () => {
     if (!incomingCall) return
     acceptCall(incomingCall)
   }
-
   const handleReject = () => {
     if (!incomingCall) return
     rejectCall(incomingCall)
     setCallModalOpen(false)
   }
-
   const handleHangUp = () => {
     rtcEndCall()
     storeEndCall()
@@ -296,7 +294,7 @@ const CallModal = () => {
 
   if (!isCallModalOpen) return null
 
-  // Incoming call UI
+  // 1) Incoming state
   if (incomingCall && !currentCall) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
@@ -312,14 +310,14 @@ const CallModal = () => {
           <div className="flex justify-center space-x-6">
             <button
               onClick={handleReject}
-              className="btn btn-circle btn-lg btn-error"
+              className="btn btn-error btn-circle btn-lg"
               title="Reject"
             >
               <PhoneOff size={24} />
             </button>
             <button
               onClick={handleAccept}
-              className="btn btn-circle btn-lg btn-success"
+              className="btn btn-success btn-circle btn-lg"
               title="Accept"
             >
               <Phone size={24} />
@@ -330,21 +328,48 @@ const CallModal = () => {
     )
   }
 
-  // Active call UI
-  if (currentCall) {
+  // 2) Connecting state (outgoing or just accepted)
+  if (currentCall && !isCallActive) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 w-full max-w-md text-center">
+          <h2 className="text-xl font-bold mb-2">
+            {currentCall.callerId ? 'Answering Call' : 'Calling'}
+          </h2>
+          <p className="mb-4 text-gray-600">
+            {currentCall.callType === 'video' ? 'Video Call' : 'Voice Call'} – Connecting...
+          </p>
+          <button
+            onClick={handleHangUp}
+            className="btn btn-error btn-lg"
+            title="Hang Up"
+          >
+            Hang Up
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // 3) Active state
+  if (isCallActive) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg p-6 w-full max-w-3xl h-4/5 flex flex-col">
           <header className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">
               {currentCall.isGroup ? 'Group Call' : 'Call'}{' '}
-              <span className="text-sm font-normal text-gray-500">
+              <span className="text-sm text-gray-500">
                 ({callType === 'video' ? 'Video' : 'Audio'})
               </span>
             </h2>
-            <div className="text-sm text-gray-600">
-              {isCallActive ? 'Connected' : 'Connecting...'}
-            </div>
+            <button
+              onClick={handleHangUp}
+              className="btn btn-error btn-sm"
+              title="Hang Up"
+            >
+              End Call
+            </button>
           </header>
 
           <div className="flex-1 bg-gray-900 rounded-lg overflow-hidden relative">
@@ -373,9 +398,6 @@ const CallModal = () => {
                     <Phone size={32} />
                   </div>
                   <p className="text-white">{currentCall.callerName}</p>
-                  <p className="text-gray-300">
-                    {isCallActive ? 'Connected' : 'Connecting...'}
-                  </p>
                 </div>
               </div>
             )}
@@ -406,13 +428,6 @@ const CallModal = () => {
                 )}
               </button>
             )}
-            <button
-              onClick={handleHangUp}
-              className="btn btn-circle btn-lg btn-error"
-              title="Hang Up"
-            >
-              <PhoneOff size={24} />
-            </button>
           </footer>
         </div>
       </div>
