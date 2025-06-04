@@ -17,6 +17,7 @@ export const useCallStore = create((set, get) => ({
   // Handle incoming call - FIXED VERSION
   handleIncomingCall: (callData) => {
     console.log("📞 Incoming call:", callData);
+    toast.remove()
 
     // Set incoming call data and open modal
     set({
@@ -26,13 +27,18 @@ export const useCallStore = create((set, get) => ({
     });
 
     // Show a simple toast notification (not for interaction)
-    toast.success(
+    const toastId = `incoming-${callData.callId}`
+    if (!toast.isActive(toastId)) {
+      toast.success(
       `📞 ${callData.isGroup ? 'Group Call' : `${callData.callerName} is calling`}`,
-      {
-        duration: 5000,
-        position: 'top-center'
-      }
-    );
+        {
+          id: toastId,
+          position: 'top-center',
+          duration: 5000
+        }
+      )
+    }
+    
   },
 
   acceptCall: (callData) => {
