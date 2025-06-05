@@ -9,8 +9,8 @@ import cookie from "cookie"; // Needed to parse the raw cookie header
 import Group from "../models/group.model.js"; // Assuming you have a Group model
 import Call from "../models/call.model.js";
 import User from "../models/user.model.js"; // Assuming you have a User model
-import dotenv from "dotenv";
-dotenv.config(); // Load environment variables from .env file
+// import dotenv from "dotenv";
+// dotenv.config(); // Load environment variables from .env file
 
 const app = express();
 const server = http.createServer(app);
@@ -51,8 +51,8 @@ io.use(async(socket, next) => {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     socket.userId = payload.userId;
-    const user = await User.findById(userId).select("fullName")
-    socket.userName = user?.fullName || "Unknown"
+    socket.userName = await User.findById(payload.userId).select("fullName");
+    socket.userName = User?.fullName || "Unknown"
     next();
   } catch (err) {
     return next(new Error("Authentication error: invalid token"));
