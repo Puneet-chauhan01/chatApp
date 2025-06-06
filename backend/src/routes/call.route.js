@@ -8,7 +8,7 @@ import {
   updateCallStatus,
   deleteCall
 } from "../controllers/call.controller.js";
-
+import { getAgoraToken } from "../controllers/rtc.controller.js";
 const router = express.Router();
 
 // Get call history with pagination
@@ -25,5 +25,8 @@ router.put("/:callId/status", protectRoute, updateCallStatus);
 
 // Delete call record
 router.delete("/:callId", protectRoute, deleteCall);
+
+router.post("/token", protectRoute, getAgoraToken);
+
 
 export default router;

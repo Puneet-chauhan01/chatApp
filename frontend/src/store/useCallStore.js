@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { useAuthStore } from './useAuthStore';
 import toast from 'react-hot-toast';
-
+import { axiosInstance } from "../lib/axios";
 export const useCallStore = create((set, get) => ({
   // State
   incomingCall: null,
@@ -18,7 +18,17 @@ export const useCallStore = create((set, get) => ({
   handleIncomingCall: (callData) => {
     console.log("📞 Incoming call:", callData);
     toast.remove()
-
+    const toastId = `incoming-${callData.callId}`
+    if (!toast.isActive(toastId)) {
+      toast.success(
+        `📞 ${callData.isGroup ? 'Group Call' : `${callData.callerName} is calling`}`,
+        {
+          id: toastId,
+          position: 'top-center',
+          duration: 5000
+        }
+      )
+    }
     // Set incoming call data and open modal
     set({
       incomingCall: callData,
@@ -27,21 +37,11 @@ export const useCallStore = create((set, get) => ({
     });
 
     // Show a simple toast notification (not for interaction)
-    const toastId = `incoming-${callData.callId}`
-    if (!toast.isActive(toastId)) {
-      toast.success(
-      `📞 ${callData.isGroup ? 'Group Call' : `${callData.callerName} is calling`}`,
-        {
-          id: toastId,
-          position: 'top-center',
-          duration: 5000
-        }
-      )
-    }
-    
+
+
   },
 
-  acceptCall: (callData) => {
+  acceptCall: async (callData) => {
     console.log("✅ Accepting call:", callData);
     const { socket } = useAuthStore.getState();
     if (socket) {
@@ -50,6 +50,19 @@ export const useCallStore = create((set, get) => ({
         targetUserId: callData.callerId
       });
     }
+
+    try {
+      await axiosInstance.post('/api/calls/initiate', {
+        callId: callData.callId,
+        targetUserId: callData.callerId,
+        callType: callData.callType,
+        isGroup: callData.isGroup,
+        groupId: callData.groupId
+      })
+    } catch (err) {
+      console.error('Error initiating call record:', err)
+    }
+
     set({
       incomingCall: null,
       currentCall: callData,
