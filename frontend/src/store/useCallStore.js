@@ -16,7 +16,7 @@ export const useCallStore = create((set, get) => ({
 
   // Handle incoming call - FIXED VERSION
   handleIncomingCall: (callData) => {
-    console.log("📞 Incoming call:", callData);
+    console.log("📞[client] Incoming call:", callData);
     toast.remove()
     const toastId = `incoming-${callData.callId}`
     if (!toast.isActive(toastId)) {

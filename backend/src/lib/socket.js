@@ -33,7 +33,7 @@ export function getRecieverSocketId(userId) {
 
 // ── JWT Authentication Middleware for Socket.IO ──
 // This will run on each incoming socket connection.
-io.use(async(socket, next) => {
+io.use(async (socket, next) => {
   // 1) Grab the raw Cookie header from the handshake
   const rawCookie = socket.handshake.headers.cookie;
   if (!rawCookie) {
@@ -107,7 +107,7 @@ io.on("connection", (socket) => {
     socket.leave(groupId);
     console.log(`🔴 Socket ${socket.id} left group: ${groupId}`);
   });
-  
+
   // ── Disconnection ──
   socket.on("disconnect", () => {
     delete userSocketMap[userId];
@@ -115,7 +115,9 @@ io.on("connection", (socket) => {
     console.log(`❌ User disconnected: ${userId} (socket ${socket.id})`);
   });
 
-   socket.on("callUser", (callData) => {
+  socket.on("callUser", (callData) => {
+    console.log("📞 [Server] callUser received:", callData);
+
     const calleeSockId = userSocketMap[callData.targetUserId];
     if (calleeSockId) {
       io.to(calleeSockId).emit("incomingCall", callData);
