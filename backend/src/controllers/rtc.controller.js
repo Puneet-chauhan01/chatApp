@@ -30,14 +30,13 @@
 // backend/controllers/rtc.controller.js
 import pkg from 'agora-access-token';
 const { RtcTokenBuilder, RtcRole,
-  RtmTokenBuilder, RtmRole    // ← add these two
-
+  RtmTokenBuilder, RtmRole
 } = pkg;
 export const getAgoraToken = async (req, res) => {
   const channel = req.body.channelName
   const account = req.user._id.toString()
   const expire = Math.floor(Date.now() / 1000) + 3600
-
+try{
   const rtcToken = RtcTokenBuilder.buildTokenWithAccount(
     process.env.AGORA_APP_ID,
     process.env.AGORA_APP_CERTIFICATE,
@@ -46,13 +45,17 @@ export const getAgoraToken = async (req, res) => {
     RtcRole.PUBLISHER,
     expire
   )
-  const rtmToken = RtmTokenBuilder.buildTokenWithAccount(
-    process.env.AGORA_APP_ID,
-    process.env.AGORA_APP_CERTIFICATE,
-    account,
-    RtmRole.PUBLISHER,
-    expire
-  )
+  const rtmToken = RtmTokenBuilder.buildToken(
+  process.env.AGORA_APP_ID,
+  process.env.AGORA_APP_CERTIFICATE,
+  account,
+  RtmRole.Rtm_User,   // RTM only has a single “user” role
+  expire
+)
 
   return res.json({ appId: process.env.AGORA_APP_ID, channelName: channel, uid: account, rtcToken, rtmToken })
+} catch (err) {
+    console.error('getAgoraToken error:', err);
+    return res.status(500).json({ message: 'Token generation failed' });
+  }
 }
