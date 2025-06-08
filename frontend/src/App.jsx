@@ -13,11 +13,14 @@ import SettingsPage from './pages/SettingsPage'
 import ProfilePage from './pages/ProfilePage'
 import { Loader } from 'lucide-react'
 import { useThemeStore } from './store/useThemeStore'
+import { useGroupStore } from './store/useGroupStore'
+
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth, socket, groups } = useAuthStore()
+  const { authUser, checkAuth, isCheckingAuth, socket } = useAuthStore()
   const { handleIncomingCall, endCall } = useCallStore()
   const { theme } = useThemeStore()
   const hasJoined = useRef(false)
+ const { groups } = useGroupStore()
   useEffect(() => { checkAuth() }, [])
 
   useEffect(() => {
