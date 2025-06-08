@@ -10,10 +10,10 @@ import axios from "axios";
 // // 1. Create an axios instance pointing to your backend
 export const axiosInstance = axios.create({
   baseURL: 
-  // import.meta.env.VITE_API_URL || "http://localhost:5001/api",
-   import.meta.env.VITE_API_URL === "development"
-    ? "http://localhost:5001/api/" 
-    : "/api/",
+  import.meta.env.VITE_API_URL || "http://localhost:5001/api",
+  //  import.meta.env.VITE_API_URL === "development"
+  //   ? "http://localhost:5001/api/" 
+  //   : "/api/",
   withCredentials: true, // ensures cookies (e.g. JWT cookie) are sent as well
 });
 

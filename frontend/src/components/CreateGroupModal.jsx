@@ -29,6 +29,7 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
     if (!isOpen) {
       // When modal closes, mark as “not just opened”
       justOpenedRef.current = false;
+      // return null;
     }
   }, [isOpen]);
 
