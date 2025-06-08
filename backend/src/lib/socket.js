@@ -51,7 +51,7 @@ io.use(async(socket, next) => {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     socket.userId = payload.userId;
-    socket.userName = await User.findById(payload.userId).select("fullName");
+    // socket.userName = await User.findById(payload.userId).select("fullName");
     socket.userName = User?.fullName || "Unknown"
     next();
   } catch (err) {
@@ -113,6 +113,43 @@ io.on("connection", (socket) => {
     delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
     console.log(`❌ User disconnected: ${userId} (socket ${socket.id})`);
+  });
+
+   socket.on("callUser", (callData) => {
+    const calleeSockId = userSocketMap[callData.targetUserId];
+    if (calleeSockId) {
+      io.to(calleeSockId).emit("incomingCall", callData);
+      console.log("📞 callUser → incomingCall:", callData);
+    }
+  });
+
+  // Callee accepts
+  socket.on("acceptCall", ({ callId, callerId }) => {
+    const callerSockId = userSocketMap[callerId];
+    if (callerSockId) {
+      io.to(callerSockId).emit("callAccepted", { callId });
+      console.log("✅ acceptCall → callAccepted:", callId);
+    }
+  });
+
+  // Callee rejects
+  socket.on("rejectCall", ({ callId, callerId }) => {
+    const callerSockId = userSocketMap[callerId];
+    if (callerSockId) {
+      io.to(callerSockId).emit("callRejected", { callId });
+      console.log("❌ rejectCall → callRejected:", callId);
+    }
+  });
+
+  // Either party ends
+  socket.on("endCall", ({ callId, participants }) => {
+    participants.forEach((uid) => {
+      const sid = userSocketMap[uid];
+      if (sid) {
+        io.to(sid).emit("callEnded", { callId });
+      }
+    });
+    console.log("⛔ endCall → callEnded:", callId);
   });
 
   socket.on("error", (err) =>

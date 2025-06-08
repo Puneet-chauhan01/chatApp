@@ -3,24 +3,24 @@ import React, { useEffect, useRef } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './store/useAuthStore'
 import { useCallStore } from './store/useCallStore'
-import CallModal        from './components/CallModal'
-import { Toaster }      from 'react-hot-toast'
-import Navbar           from './components/Navbar'
-import HomePage         from './pages/HomePage'
-import LoginPage        from './pages/LoginPage'
-import SignUpPage       from './pages/SignUpPage'
-import SettingsPage     from './pages/SettingsPage'
-import ProfilePage      from './pages/ProfilePage'
-import { Loader }       from 'lucide-react'
+import CallModal from './components/CallModal'
+import { Toaster } from 'react-hot-toast'
+import Navbar from './components/Navbar'
+import HomePage from './pages/HomePage'
+import LoginPage from './pages/LoginPage'
+import SignUpPage from './pages/SignUpPage'
+import SettingsPage from './pages/SettingsPage'
+import ProfilePage from './pages/ProfilePage'
+import { Loader } from 'lucide-react'
 import { useThemeStore } from './store/useThemeStore'
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth, socket,groups } = useAuthStore()
-  const { handleIncomingCall, endCall }                = useCallStore()
-  const { theme }                                      = useThemeStore()
+  const { authUser, checkAuth, isCheckingAuth, socket, groups } = useAuthStore()
+  const { handleIncomingCall, endCall } = useCallStore()
+  const { theme } = useThemeStore()
   const hasJoined = useRef(false)
   useEffect(() => { checkAuth() }, [])
 
-   useEffect(() => {
+  useEffect(() => {
     if (!socket) return;
     socket.on("incomingCall", handleIncomingCall);
     socket.on("callEnded", endCall);
@@ -30,10 +30,11 @@ const App = () => {
     };
   }, [socket, handleIncomingCall, endCall]);
   useEffect(() => {
-    if (!socket || hasJoined.current) return
-    if (Array.isArray(groups) && groups.length > 0) {
-      socket.emit('joinGroups', groups)
-      hasJoined.current = true
+    if (!socket || hasJoined.current) return;
+    const groupIds = groups.map(g => g._id);
+    if (groupIds.length) {
+      socket.emit('joinGroups', groupIds);
+      hasJoined.current = true;
     }
   }, [socket, groups])
 
@@ -45,14 +46,14 @@ const App = () => {
     <div data-theme={theme}>
       <Navbar />
       <Routes>
-        <Route path="/"       element={authUser ? <HomePage /> : <Navigate to="/login"/>} />
-        <Route path="/signup" element={!authUser? <SignUpPage/> : <Navigate to="/"/>} />
-        <Route path="/login"  element={!authUser? <LoginPage/>  : <Navigate to="/"/>} />
-        <Route path="/settings" element={<SettingsPage/>} />
-        <Route path="/profile"  element={authUser ? <ProfilePage/> : <Navigate to="/login"/>} />
+        <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
+        <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
+        <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
       </Routes>
       <CallModal />
-      <Toaster limit={1}/>
+      <Toaster limit={1} />
     </div>
   )
 }
