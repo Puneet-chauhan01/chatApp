@@ -28,8 +28,7 @@ socketApp.use(cors({
 socketApp.use("/api/auth", authRoutes);
 socketApp.use("/api/messages", messageRoutes);
 socketApp.use("/api/groups", groupRoutes);
-socketApp.use("/api/calls", callRoutes);
-
+socketApp.use("/api/calls",   callRoutes) 
 
 if (process.env.NODE_ENV === "production") {
   socketApp.use(express.static(path.join(__dirname, "../frontend/dist")));

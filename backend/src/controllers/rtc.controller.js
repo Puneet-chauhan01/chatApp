@@ -29,11 +29,14 @@
 
 // backend/controllers/rtc.controller.js
 import pkg from 'agora-access-token';
-const { RtcTokenBuilder, RtcRole } = pkg;
+const { RtcTokenBuilder, RtcRole,
+  RtmTokenBuilder, RtmRole    // ← add these two
+
+} = pkg;
 export const getAgoraToken = async (req, res) => {
   const channel = req.body.channelName
   const account = req.user._id.toString()
-  const expire  = Math.floor(Date.now()/1000) + 3600
+  const expire = Math.floor(Date.now() / 1000) + 3600
 
   const rtcToken = RtcTokenBuilder.buildTokenWithAccount(
     process.env.AGORA_APP_ID,

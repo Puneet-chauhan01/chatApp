@@ -5,18 +5,28 @@
 // })
 
 // src/lib/axios.js
+// import axios from "axios";
+
+// // // 1. Create an axios instance pointing to your backend
+// export const axiosInstance = axios.create({
+//   baseURL: 
+//   // import.meta.env.VITE_API_URL || "http://localhost:5001/api",
+//    import.meta.env.VITE_API_URL === "development"
+//     ? "http://localhost:5001/api/" 
+//     : "/api",
+//   withCredentials: true, // ensures cookies (e.g. JWT cookie) are sent as well
+// });
+// export default axiosInstance;
+
+// src/lib/axios.js
 import axios from "axios";
 
-// // 1. Create an axios instance pointing to your backend
 export const axiosInstance = axios.create({
-  baseURL: 
-  import.meta.env.VITE_API_URL || "http://localhost:5001/api",
-  //  import.meta.env.VITE_API_URL === "development"
-  //   ? "http://localhost:5001/api/" 
-  //   : "/api/",
-  withCredentials: true, // ensures cookies (e.g. JWT cookie) are sent as well
+  baseURL: import.meta.env.VITE_API_URL + "/api",
+  withCredentials: true,
 });
 
+export default axiosInstance;
 
 
 // 2. Interceptor: attach Authorization header if token is in localStorage
@@ -31,4 +41,3 @@ export const axiosInstance = axios.create({
 //   (error) => Promise.reject(error)
 // );
 
-export default axiosInstance;
