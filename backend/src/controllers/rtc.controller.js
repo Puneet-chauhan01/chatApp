@@ -28,8 +28,8 @@
 
 
 // backend/controllers/rtc.controller.js
-import { RtcTokenBuilder, RtmTokenBuilder, RtcRole, RtmRole } from "agora-access-token"
-
+import pkg from 'agora-access-token';
+const { RtcTokenBuilder, RtcRole } = pkg;
 export const getAgoraToken = async (req, res) => {
   const channel = req.body.channelName
   const account = req.user._id.toString()
