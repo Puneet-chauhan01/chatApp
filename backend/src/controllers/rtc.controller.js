@@ -54,5 +54,5 @@ export const getAgoraToken = async (req, res) => {
     expire
   )
 
-  res.json({ appId: process.env.AGORA_APP_ID, channelName: channel, uid: account, rtcToken, rtmToken })
+  return res.json({ appId: process.env.AGORA_APP_ID, channelName: channel, uid: account, rtcToken, rtmToken })
 }
