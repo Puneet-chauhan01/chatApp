@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './store/useAuthStore'
 import { useCallStore } from './store/useCallStore'
@@ -13,25 +13,29 @@ import SettingsPage     from './pages/SettingsPage'
 import ProfilePage      from './pages/ProfilePage'
 import { Loader }       from 'lucide-react'
 import { useThemeStore } from './store/useThemeStore'
-
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth, socket } = useAuthStore()
+  const { authUser, checkAuth, isCheckingAuth, socket,groups } = useAuthStore()
   const { handleIncomingCall, endCall }                = useCallStore()
   const { theme }                                      = useThemeStore()
-
+  const hasJoined = useRef(false)
   useEffect(() => { checkAuth() }, [])
 
-  useEffect(() => {
-    if (!socket) return
-
-    socket.on("incomingCall", handleIncomingCall)
-    socket.on("callEnded", () => endCall())
-
+   useEffect(() => {
+    if (!socket) return;
+    socket.on("incomingCall", handleIncomingCall);
+    socket.on("callEnded", endCall);
     return () => {
-      socket.off("incomingCall", handleIncomingCall)
-      socket.off("callEnded",    endCall)
+      socket.off("incomingCall", handleIncomingCall);
+      socket.off("callEnded", endCall);
+    };
+  }, [socket, handleIncomingCall, endCall]);
+  useEffect(() => {
+    if (!socket || hasJoined.current) return
+    if (Array.isArray(groups) && groups.length > 0) {
+      socket.emit('joinGroups', groups)
+      hasJoined.current = true
     }
-  }, [socket, handleIncomingCall, endCall])
+  }, [socket, groups])
 
   if (isCheckingAuth && !authUser) {
     return <div className="flex items-center justify-center h-screen"><Loader className="animate-spin" /></div>

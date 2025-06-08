@@ -15,16 +15,11 @@ const CallModal = () => {
   } = useCallStore()
 
   // When user accepts or initiates, set currentCall → AgoraCall mounts
-  const onAccept = () => {
-    if (!incomingCall) return
-    acceptCall(incomingCall)
-  }
-
+  const onAccept = () => { incomingCall && acceptCall(incomingCall); };
   const onReject = () => {
-    if (!incomingCall) return
-    rejectCall(incomingCall)
-    setCallModalOpen(false)
-  }
+    incomingCall && rejectCall(incomingCall);
+    setCallModalOpen(false);
+  };
 
   if (!isCallModalOpen) return null
 
@@ -55,20 +50,20 @@ const CallModal = () => {
   }
 
   // 2) Connecting: show until AgoraCall mounts
-  if (currentCall && !incomingCall) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40">
-        <div className="bg-white p-6 rounded-lg text-center w-80">
-          <h2 className="text-xl font-bold mb-2">
-            Calling…
-          </h2>
-          <p className="mb-4 text-gray-600">
-            {currentCall.callType === 'video' ? 'Video Call' : 'Voice Call'} – Connecting...
-          </p>
-        </div>
-      </div>
-    )
-  }
+  // if (currentCall && !incomingCall) {
+  //   return (
+  //     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40">
+  //       <div className="bg-white p-6 rounded-lg text-center w-80">
+  //         <h2 className="text-xl font-bold mb-2">
+  //           Calling…
+  //         </h2>
+  //         <p className="mb-4 text-gray-600">
+  //           {currentCall.callType === 'video' ? 'Video Call' : 'Voice Call'} – Connecting...
+  //         </p>
+  //       </div>
+  //     </div>
+  //   )
+  // }
 
   // 3) Active: render Agora UIKit
   if (currentCall) {
