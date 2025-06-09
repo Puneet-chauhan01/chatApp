@@ -46,8 +46,9 @@ const App = () => {
   }
 
   return (
-    <div data-theme={theme} className="pt-16" >
+    <div data-theme={theme} className="flex flex-col h-screen" >
       <Navbar />
+       <div className="flex-1 overflow-hidden pt-16">
       <Routes>
         <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
         <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
@@ -55,6 +56,7 @@ const App = () => {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
       </Routes>
+      </div>
       <CallModal />
       <Toaster limit={1} />
     </div>

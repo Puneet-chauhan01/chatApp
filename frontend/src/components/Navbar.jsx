@@ -62,8 +62,7 @@ import {
   LogOut,
   MessageSquare,
   Settings,
-  User,
-  PhoneCall
+  User
 } from 'lucide-react' // import a phone icon
 
 const Navbar = () => {
@@ -97,16 +96,7 @@ const Navbar = () => {
             <span className="hidden sm:inline">Settings</span>
           </Link>
 
-          {/* Call button (always visible) */}
-          {authUser && (
-            <Link
-              to="/call"                    // or "#" + your click handler
-              className="btn btn-sm btn-primary gap-2"
-            >
-              <PhoneCall className="w-4 h-4" />
-              <span className="hidden sm:inline">Call</span>
-            </Link>
-          )}
+         
 
           {/* Profile & Logout (visible only when signed in) */}
           {authUser && (
