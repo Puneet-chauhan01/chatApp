@@ -3,9 +3,15 @@
 @plugin "daisyui" ;
 @plugin "daisyui" {
   themes: all;} */
+
+/* @import "tailwindcss"; */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* @plugin "daisyui" ;
+@plugin "daisyui" {
+  themes: all;
+} */
 /* Mobile Responsive Styles */
 @media (max-width: 1024px) {
   /* Ensure full height on mobile */
