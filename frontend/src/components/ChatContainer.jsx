@@ -61,7 +61,7 @@ const ChatContainer = () => {
   const { type, data } = selectedChat; // data = user object or group object
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-auto md:overflow-hidden">
+    <div className="flex-1 flex flex-col h-full overflow-auto md:overflow-hidden ">
       {/* Sticky header pushed below the 4rem-tall navbar */}
       <div>
         <ChatHeader />
