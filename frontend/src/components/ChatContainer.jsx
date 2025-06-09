@@ -61,12 +61,12 @@ const ChatContainer = () => {
   const { type, data } = selectedChat; // data = user object or group object
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full overflow-auto md:overflow-hidden">
       {/* Sticky header pushed below the 4rem-tall navbar */}
-      <div className="sflex-1 overflow-auto">
+      <div>
         <ChatHeader />
       </div>
-      <div className="flex-1 p-4 space-y-4">
+      <div className="flex-1 space-y-4 md:overflow-y-auto">
         {messages.map((message) => {
           // Determine avatar URL:
           let avatarUrl;
