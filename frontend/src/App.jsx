@@ -49,7 +49,7 @@ const App = () => {
   return (
     <div data-theme={theme} className="flex flex-col h-screen" >
       <Navbar />
-       <div className="flex-1 overflow-hidden pt-1">
+       <div className="flex-1 overflow-auto ">
       <Routes>
         <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
         <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
