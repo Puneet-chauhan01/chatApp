@@ -130,7 +130,6 @@
 // export default ChatHeader;
 
 
-
 // src/components/ChatHeader.jsx
 import React, { useState } from "react"
 import {
@@ -147,42 +146,41 @@ import AddMembersModal from "./modals/AddMembersModal"
 import GroupProfileModal from "./modals/GroupProfileModal"
 
 const ChatHeader = () => {
-  const { onlineUsers, authUser } = useAuthStore()
-  const { selectedChat, setSelectedChat } = useChatStore()
-  const { initiateCall } = useCallStore()
+  const { onlineUsers, authUser }           = useAuthStore()
+  const { selectedChat, setSelectedChat }   = useChatStore()
+  const { initiateCall }                    = useCallStore()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
 
   if (!selectedChat?.data) return null
   const { type, data } = selectedChat
 
-  // Only allow direct calls if the other user is online
-  const canCallUser =
-    type === "user" && onlineUsers.includes(data._id)
+  // Only allow 1:1 calls when the other user is online
+  const canCallUser = type === "user" && onlineUsers.includes(data._id)
 
-  // Check if current user is a group admin
+  // Group admin check
   const isGroupAdmin =
     type === "group" &&
     Array.isArray(data.admins) &&
     data.admins.some((adm) => adm._id === authUser._id)
 
-  // Back to list
+  // Navigate back to chat list
   const handleBack = () => setSelectedChat(null)
 
-  // Start a call
+  // Trigger call initiation
   const handleCallClick = () => {
     const callId = `call_${Date.now()}`
     initiateCall({
       callId,
-      callerName: authUser.fullName,
+      callerName:  authUser.fullName,
       targetUserId: type === "user" ? data._id : undefined,
-      callType: "video",
-      isGroup: type === "group",
-      groupId: type === "group" ? data._id : undefined
+      callType:     "video",
+      isGroup:      type === "group",
+      groupId:      type === "group" ? data._id : undefined
     })
   }
 
-  // Open group profile if group header clicked
+  // Open group profile modal
   const handleAvatarClick = () => {
     if (type === "group") setIsProfileModalOpen(true)
   }
@@ -190,31 +188,28 @@ const ChatHeader = () => {
   return (
     <div className="p-2.5 border-b border-base-300 bg-base-100">
       <div className="flex items-center justify-between">
-        {/* Back button on mobile */}
+        {/* Mobile “back” button */}
         <button
           onClick={handleBack}
           className="lg:hidden btn btn-ghost btn-sm btn-circle"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={18}/>
         </button>
 
-        {/* Avatar + Name */}
+        {/* Avatar + Chat title */}
         <div
           className="flex items-center gap-3 cursor-pointer"
           onClick={handleAvatarClick}
         >
           <div className="avatar">
-            <div className="w-10 h-10 rounded-full relative">
+            <div className="w-10 h-10 rounded-full overflow-hidden">
               {type === "user" ? (
-                <img
-                  src={data.profilePic || "/avatar.png"}
-                  alt={data.fullName}
-                />
+                <img src={data.profilePic || "/avatar.png"} alt={data.fullName}/>
               ) : data.groupPic ? (
-                <img src={data.groupPic} alt={data.name} />
+                <img src={data.groupPic} alt={data.name}/>
               ) : (
-                <div className="w-10 h-10 bg-primary text-primary-content rounded-full flex items-center justify-center">
-                  {data.name.charAt(0).toUpperCase() || "?"}
+                <div className="w-10 h-10 bg-primary text-primary-content flex items-center justify-center text-xl">
+                  {data.name.charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
@@ -225,15 +220,13 @@ const ChatHeader = () => {
             </h3>
             <p className="text-sm text-base-content/70">
               {type === "user"
-                ? canCallUser
-                  ? "Online"
-                  : "Offline"
+                ? canCallUser ? "Online" : "Offline"
                 : `${data.members.length} members`}
             </p>
           </div>
         </div>
 
-        {/* Action buttons */}
+        {/* Action icons */}
         <div className="flex items-center gap-2">
           <div className="flex items-center space-x-1">
             {/* Call button */}
@@ -246,13 +239,9 @@ const ChatHeader = () => {
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-base-200"
                 }`}
-                title={
-                  canCallUser
-                    ? "Call user"
-                    : "Cannot call: user is offline"
-                }
+                title={canCallUser ? "Call user" : "User is offline"}
               >
-                <PhoneCall size={20} />
+                <PhoneCall size={20}/>
               </button>
             )}
             {type === "group" && (
@@ -261,39 +250,39 @@ const ChatHeader = () => {
                 className="btn btn-ghost btn-circle btn-sm hover:bg-base-200"
                 title="Start group call"
               >
-                <PhoneCall size={20} />
+                <PhoneCall size={20}/>
               </button>
             )}
 
             {/* Info button */}
             <button className="btn btn-ghost btn-sm btn-circle lg:btn-md">
-              <Info size={16} className="lg:w-5 lg:h-5" />
+              <Info size={16}/>
             </button>
           </div>
 
-          {/* Only admins can add members */}
+          {/* Add members (groups only, admins only) */}
           {isGroupAdmin && (
             <button
               onClick={() => setIsAddModalOpen(true)}
               className="btn btn-sm btn-outline"
               title="Add Members"
             >
-              <UserPlus size={18} />
+              <UserPlus size={18}/>
             </button>
           )}
 
           {/* Close chat */}
           <button
-            onClick={() => setSelectedChat(null)}
+            onClick={handleBack}
             className="btn btn-sm btn-ghost"
             title="Close chat"
           >
-            <X size={18} />
+            <X size={18}/>
           </button>
         </div>
       </div>
 
-      {/* Group modals */}
+      {/* Group-only modals */}
       {type === "group" && isGroupAdmin && (
         <AddMembersModal
           isOpen={isAddModalOpen}
