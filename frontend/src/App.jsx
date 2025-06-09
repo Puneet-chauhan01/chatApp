@@ -14,13 +14,15 @@ import ProfilePage from './pages/ProfilePage'
 import { Loader } from 'lucide-react'
 import { useThemeStore } from './store/useThemeStore'
 import { useGroupStore } from './store/useGroupStore'
+import { useChatStore } from './store/useChatStore'
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth, socket } = useAuthStore()
   const { handleIncomingCall, endCall } = useCallStore()
   const { theme } = useThemeStore()
   const hasJoined = useRef(false)
- const { groups } = useGroupStore()
+  const { groups } = useGroupStore()
+  const { selectedChat } = useChatStore()
   useEffect(() => { checkAuth() }, [])
 
   useEffect(() => {
@@ -47,15 +49,15 @@ const App = () => {
 
   return (
     <div data-theme={theme} className="flex flex-col h-screen" >
-      <Navbar />
-       <div className="flex-1 overflow-hidden pt-16">
-      <Routes>
-        <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
-        <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
-        <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
-      </Routes>
+      {!selectedChat && <Navbar />}       
+      <div className="flex-1 overflow-hidden">
+        <Routes>
+          <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
+          <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
+          <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
+        </Routes>
       </div>
       <CallModal />
       <Toaster limit={1} />
