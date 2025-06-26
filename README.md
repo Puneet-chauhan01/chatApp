@@ -71,4 +71,3 @@ uses cloudinary,zustand,daisyui,axioa,socket,mongodb,multer
         │   ├── SignUpPage.jsx
         │   ├── ProfilePage.jsx
         │   └── SettingsPage.jsx
-        └── styles
