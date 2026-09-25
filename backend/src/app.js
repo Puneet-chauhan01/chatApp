@@ -28,9 +28,9 @@ socketApp.use("/api/groups", groupRoutes);
 socketApp.use("/api/calls",   callRoutes) 
 
 if (process.env.NODE_ENV === "production") {
-  socketApp.use(express.static(path.join(__dirname, "../../frontend/dist")));
+  socketApp.use(express.static(path.join(__dirname, "../frontend/dist")));
   socketApp.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/dist/index.html"));
+    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
   });
 }
 
