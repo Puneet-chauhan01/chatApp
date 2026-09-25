@@ -209,9 +209,11 @@ const Sidebar = () => {
     fetchGroups();
   }, [getUsers, fetchGroups]);
 
-  const filteredUsers = showOnlineOnly 
-    ? users.filter(user => onlineUsers.includes(user._id))
-    : users;
+  const safeUsers = Array.isArray(users) ? users : [];
+  const safeGroups = Array.isArray(groups) ? groups : [];
+  const filteredUsers = showOnlineOnly
+    ? safeUsers.filter((user) => onlineUsers.includes(user._id))
+    : safeUsers;
 
   if (isUsersLoading || isGroupsLoading) {
     return (
@@ -363,7 +365,7 @@ const Sidebar = () => {
               </button>
 
               {/* Groups List */}
-              {groups.map((group) => (
+              {safeGroups.map((group) => (
                 <button
                   key={group._id}
                   onClick={() => {
@@ -384,13 +386,13 @@ const Sidebar = () => {
                   <div className="flex-1 text-left min-w-0">
                     <p className="font-medium truncate">{group.name}</p>
                     <p className="text-xs opacity-60">
-                      {group.members.length} members
+                      {Array.isArray(group.members) ? group.members.length : 0} members
                     </p>
                   </div>
                 </button>
               ))}
 
-              {groups.length === 0 && (
+              {safeGroups.length === 0 && (
                 <div className="text-center py-8 text-base-content/60">
                   <Users size={48} className="mx-auto mb-3 opacity-50" />
                   <p>No groups yet</p>

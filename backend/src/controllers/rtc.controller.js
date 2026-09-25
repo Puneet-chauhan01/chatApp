@@ -28,34 +28,40 @@
 
 
 // backend/controllers/rtc.controller.js
-import pkg from 'agora-access-token';
-const { RtcTokenBuilder, RtcRole,
-  RtmTokenBuilder, RtmRole
-} = pkg;
-export const getAgoraToken = async (req, res) => {
-  const channel = req.body.channelName
-  const account = req.user._id.toString()
-  const expire = Math.floor(Date.now() / 1000) + 3600
-try{
-  const rtcToken = RtcTokenBuilder.buildTokenWithAccount(
-    process.env.AGORA_APP_ID,
-    process.env.AGORA_APP_CERTIFICATE,
-    channel,
-    account,
-    RtcRole.PUBLISHER,
-    expire
-  )
-  const rtmToken = RtmTokenBuilder.buildToken(
-  process.env.AGORA_APP_ID,
-  process.env.AGORA_APP_CERTIFICATE,
-  account,
-  RtmRole.Rtm_User,   // RTM only has a single “user” role
-  expire
-)
+import pkg from 'agora-token';
+const { RtcTokenBuilder, RtcRole, RtmTokenBuilder } = pkg;
 
-  return res.json({ appId: process.env.AGORA_APP_ID, channelName: channel, uid: account, rtcToken, rtmToken })
-} catch (err) {
+export const getAgoraToken = async (req, res) => {
+  const channel = req.body.channelName;
+  const account = req.user._id.toString();
+  const expire = Math.floor(Date.now() / 1000) + 3600;
+
+  try {
+    const rtcToken = RtcTokenBuilder.buildTokenWithUserAccount(
+      process.env.AGORA_APP_ID,
+      process.env.AGORA_APP_CERTIFICATE,
+      channel,
+      account,
+      RtcRole.PUBLISHER,
+      expire
+    );
+
+    const rtmToken = RtmTokenBuilder.buildToken(
+      process.env.AGORA_APP_ID,
+      process.env.AGORA_APP_CERTIFICATE,
+      account,
+      expire
+    );
+
+    return res.json({
+      appId: process.env.AGORA_APP_ID,
+      channelName: channel,
+      uid: account,
+      rtcToken,
+      rtmToken,
+    });
+  } catch (err) {
     console.error('getAgoraToken error:', err);
     return res.status(500).json({ message: 'Token generation failed' });
   }
-}
+};

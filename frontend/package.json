@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
-    "agora-access-token": "^2.0.4",
     "agora-react-uikit": "^1.2.0",
     "agora-rtc-sdk-ng": "^4.23.4",
     "axios": "^1.7.9",
